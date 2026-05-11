@@ -1,0 +1,28 @@
+@using RachaAiBlazor.Models
+
+<div class="grupo-card @(Grupo.NoVermelho ? "grupo-card--deve" : "grupo-card--recebe")"
+     @onclick="OnClick">
+    <div class="grupo-card__left">
+        <span class="grupo-card__icone">@Grupo.IconeCategoria</span>
+        <div class="grupo-card__info">
+            <span class="grupo-card__categoria">@Grupo.Categoria</span>
+            <strong class="grupo-card__nome">@Grupo.Nome</strong>
+        </div>
+    </div>
+    <div class="grupo-card__right">
+        <span class="grupo-card__label">
+            @(Grupo.NoVermelho ? "Você deve" : "Você recebe")
+        </span>
+        <span class="grupo-card__valor @(Grupo.NoVermelho ? "text-danger" : "text-success")">
+            @Grupo.ValorPendente.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
+        </span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Grupo Grupo { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

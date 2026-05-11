@@ -1,0 +1,130 @@
+@page "/dashboard"
+@using RachaAiBlazor.Models
+@using RachaAiBlazor.Components.Shared
+
+<PageTitle>RachaAí | Dashboard</PageTitle>
+
+<div class="dashboard">
+
+    <!-- HEADER -->
+    <div class="dashboard__header">
+        <div>
+            <h1 class="dashboard__saudacao">Olá, Lucas! 👋</h1>
+            <p class="dashboard__subtitulo">Veja como estão suas finanças coletivas</p>
+        </div>
+        <button class="btn btn-primary btn-fab" @onclick="AdicionarGasto">
+            ＋ Novo Gasto
+        </button>
+    </div>
+
+    <!-- CARDS DE RESUMO -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stat-card stat-card--saldo">
+                <span class="stat-card__label">Saldo Geral</span>
+                <span class="stat-card__valor">
+                    @SaldoGeral.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
+                </span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="stat-card stat-card--receber">
+                <span class="stat-card__label">A Receber</span>
+                <span class="stat-card__valor text-success">
+                    @TotalReceber.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
+                </span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="stat-card stat-card--pagar">
+                <span class="stat-card__label">A Pagar</span>
+                <span class="stat-card__valor text-danger">
+                    @TotalPagar.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUSCA -->
+    <div class="dashboard__busca mb-3">
+        <span class="dashboard__busca-icon">🔍</span>
+        <input
+            type="text"
+            class="form-control dashboard__busca-input"
+            placeholder="Buscar grupo ou categoria..."
+            @bind-value="termoBusca"
+            @bind-value:event="oninput" />
+    </div>
+
+    <!-- LISTA DE GRUPOS -->
+    <div class="dashboard__secao-titulo">SEUS GRUPOS ATIVOS</div>
+
+    @if (!GruposFiltrados.Any())
+    {
+        <div class="dashboard__vazio">
+            <span class="dashboard__vazio-icon">🗂️</span>
+            @if (string.IsNullOrWhiteSpace(termoBusca))
+            {
+                <p>Você ainda não participa de nenhum grupo.</p>
+                <p><strong>Que tal criar um?</strong></p>
+                <button class="btn btn-outline-primary mt-2" @onclick="AdicionarGasto">
+                    ＋ Criar primeiro grupo
+                </button>
+            }
+            else
+            {
+                <p>Nenhum grupo encontrado para "<strong>@termoBusca</strong>".</p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="grupos-lista">
+            @foreach (var grupo in GruposFiltrados)
+            {
+                <GrupoCard Grupo="grupo" />
+            }
+        </div>
+    }
+
+    <!-- TOAST DE FEEDBACK -->
+    @if (mostrarToast)
+    {
+        <div class="dashboard__toast">
+            ✅ Funcionalidade em construção! Em breve você poderá adicionar gastos.
+        </div>
+    }
+
+</div>
+
+@code {
+    private string termoBusca = string.Empty;
+    private bool mostrarToast = false;
+
+    private List<Grupo> grupos = new()
+    {
+        new Grupo { Nome = "República Central", Categoria = "Casa",    ValorPendente = 450.50m,  NoVermelho = true  },
+        new Grupo { Nome = "Churrasco de Domingo", Categoria = "Lazer",   ValorPendente = 85.00m,   NoVermelho = false },
+        new Grupo { Nome = "Viagem Floripa",     Categoria = "Viagem",  ValorPendente = 1200.00m, NoVermelho = false },
+        new Grupo { Nome = "Netflix & Internet", Categoria = "Contas",  ValorPendente = 35.90m,   NoVermelho = true  },
+        new Grupo { Nome = "Mercado da Semana",  Categoria = "Mercado", ValorPendente = 210.00m,  NoVermelho = true  },
+    };
+
+    private IEnumerable<Grupo> GruposFiltrados =>
+        string.IsNullOrWhiteSpace(termoBusca)
+            ? grupos
+            : grupos.Where(g =>
+                g.Nome.Contains(termoBusca, StringComparison.OrdinalIgnoreCase) ||
+                g.Categoria.Contains(termoBusca, StringComparison.OrdinalIgnoreCase));
+
+    private decimal TotalReceber => grupos.Where(g => !g.NoVermelho).Sum(g => g.ValorPendente);
+    private decimal TotalPagar   => grupos.Where(g =>  g.NoVermelho).Sum(g => g.ValorPendente);
+    private decimal SaldoGeral   => TotalReceber - TotalPagar;
+
+    private async Task AdicionarGasto()
+    {
+        mostrarToast = true;
+        await Task.Delay(3000);
+        mostrarToast = false;
+    }
+}
